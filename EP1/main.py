@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import filedialog
 import cv2
 from PIL import Image, ImageTk
 
@@ -8,7 +9,7 @@ class VideoPlayer:
     com botões para selecionar, reproduzir e pausar.
     """
 
-    def __init__(self, parent, title, path):
+    def __init__(self, parent, title):
         """
         Inicializa os componentes gráficos da subtela.
 
@@ -17,7 +18,6 @@ class VideoPlayer:
             title: título da subtela.
             path: caminho para o vídeo.
         """
-        self.path = path        # Atributo que contém o caminho até o arquivo de vídeo
         self.cap = None         # Objeto de captura de vídeo 
         self.playing = False    # Controle de reprodução
 
@@ -39,8 +39,11 @@ class VideoPlayer:
         Abre uma janela para o usuário selecionar um arquivo de vídeo
         e inicializa o objeto de captura (cv2.VideoCapture).
         """
-        
-        self.cap = cv2.VideoCapture(self.path)
+        path = filedialog.askopenfilename(filetypes=[("Vídeos", "*.mp4;*.avi;*.mov;*.mkv")])
+        self.cap = cv2.VideoCapture(path)
+        fps = self.cap.get(cv2.CAP_PROP_FPS)
+
+        self.delay = 1000 // fps  # calcula intervalo de exibição
 
     def play_video(self):
         """
@@ -75,8 +78,9 @@ class VideoPlayer:
                 self.video_label.imgtk = img
                 self.video_label.config(image=img)
 
-                # Agenda a próxima atualização(30 fps)
-                self.video_label.after(30, self.update_frame)
+                # Define a velocidade de reprodução com base na taxa
+                # de fps real do vídeo
+                self.video_label.after(int(self.delay), self.update_frame)
             else:
                 # Se acabou o vídeo, para a reprodução
                 self.playing = False
@@ -85,10 +89,7 @@ class VideoPlayer:
 root = tk.Tk()
 
 # Cria dois players independentes
-path1 = "./video1.mp4"
-path2 = "./video2.mp4"
-
-VideoPlayer(root, "Vídeo 1", path1)
-VideoPlayer(root, "Vídeo 2", path2)
+VideoPlayer(root, "Vídeo 1")
+VideoPlayer(root, "Vídeo 2")
 
 root.mainloop()
